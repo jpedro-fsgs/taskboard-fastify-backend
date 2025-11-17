@@ -15,6 +15,9 @@ model Task {
   deleted_at  DateTime?
   user        User     @relation(fields: [userId], references: [id])
   userId      String
+  parentTask  Task?    @relation("SubTasks", fields: [parentTaskId], references: [id])
+  parentTaskId String?
+  subTasks    Task[]   @relation("SubTasks")
 }
 
 model User {

@@ -3,7 +3,7 @@ import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
 import Fastify from "fastify";
 
-import firstRoute from "./first-route";
+import tasksRoute from "./tasks-route";
 
 const fastify = Fastify({
     logger: true,
@@ -23,7 +23,7 @@ fastify.register(fastifySwaggerUi, {
     routePrefix: "/docs",
 });
 
-fastify.register(firstRoute, { prefix: "/api" });
+fastify.register(tasksRoute, { prefix: "/api" });
 
 fastify.listen({ port: 3000 }) 
     .then(() => {
