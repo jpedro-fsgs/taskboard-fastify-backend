@@ -8,21 +8,22 @@ generator client {
 }
 
 model Task {
-  id          String    @id @default(uuid())
-  title       String
-  description String?
-  is_done     Boolean   @default(false)
-  deleted_at  DateTime?
-  user        User     @relation(fields: [userId], references: [id])
-  userId      String
-  parentTask  Task?    @relation("SubTasks", fields: [parentTaskId], references: [id])
-  parentTaskId String?
-  subTasks    Task[]   @relation("SubTasks")
+  id             String    @id @default(uuid())
+  title          String
+  description    String?
+  is_done        Boolean   @default(false)
+  deleted_at     DateTime?
+  user           User      @relation(fields: [user_id], references: [id])
+  user_id        String
+  parent_task    Task?     @relation("sub_tasks", fields: [parent_task_id], references: [id])
+  parent_task_id String?
+  sub_tasks      Task[]    @relation("sub_tasks")
 }
 
 model User {
-  id    String  @id @default(uuid())
-  email String  @unique
-  name  String?
-  tasks Task[]
+  id              String  @id @default(uuid())
+  username        String  @unique
+  name            String?
+  hashed_password String
+  tasks           Task[]
 }

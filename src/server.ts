@@ -4,9 +4,18 @@ import fastifySwaggerUi from "@fastify/swagger-ui";
 import Fastify from "fastify";
 
 import tasksRoute from "./tasks-route";
+import usersRoute from "./users-route";
 
 const fastify = Fastify({
-    logger: true,
+    logger: {
+        transport: {
+            target: "pino-pretty",
+            options: {
+                colorize: true,
+                translateTime: true,
+            },
+        },
+    },
 });
 
 fastify.register(fastifySwagger, {
@@ -23,9 +32,11 @@ fastify.register(fastifySwaggerUi, {
     routePrefix: "/docs",
 });
 
-fastify.register(tasksRoute, { prefix: "/api" });
+fastify.register(tasksRoute, { prefix: "/api/tasks" });
+fastify.register(usersRoute, { prefix: "/api/users" });
 
-fastify.listen({ port: 3000 }) 
+fastify
+    .listen({ port: 3000 })
     .then(() => {
         fastify.log.info(`Server running`);
     })

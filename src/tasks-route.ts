@@ -20,15 +20,46 @@ export default async function tasksRoute(
 
     // List tasks. Optional querystring `userId` to filter by owner.
     fastify.get<{ Querystring: { userId?: string } }>(
-        "/tasks",
+        "/",
+        // {
+        //     schema: {
+        //         response: {
+        //             200: {
+        //                 type: "object",
+        //                 properties: {
+        //                     data: {
+        //                         type: "array",
+        //                         items: {
+        //                             type: "object",
+        //                             properties: {
+        //                                 id: { type: "string" },
+        //                                 title: { type: "string" },
+        //                                 description: { type: ["string", "null"] },
+        //                                 is_done: { type: "boolean" },
+        //                                 deleted_at: { type: ["string", "null"] },
+        //                                 parent_task_id: { type: ["string", "null"] },
+        //                                 user_id: { type: "string" },
+        //                                 sub_tasks: {
+        //                                     type: "array",
+        //                                     items: { $ref: "#" }
+        //                                 }
+        //                             }
+        //                         },
+        //                     },
+        //                 },
+        //             },
+        //         },
+        //     },
+        // },
         async (request) => {
             const userId = request.query.userId;
             const where: any = { deleted_at: null };
             if (userId) where.userId = userId;
 
             const tasks: Task[] = await prisma.task.findMany({ where });
+            console.log("Fetched tasks:", tasks);
             const tasksTree = buildTree(tasks);
-            return tasksTree;
+            return { data: tasksTree };
         }
     );
 
@@ -38,22 +69,22 @@ export default async function tasksRoute(
             title: string;
             description?: string;
             is_done?: boolean;
-            parentTaskId: string;
-            userId: string;
+            parent_task_id: string;
+            user_id: string;
         };
     }>(
-        "/tasks",
+        "/create",
         {
             schema: {
                 body: {
                     type: "object",
-                    required: ["title", "userId"],
+                    required: ["title", "user_id"],
                     properties: {
                         title: { type: "string" },
                         description: { type: "string" },
                         is_done: { type: "boolean" },
-                        parentTaskId: { type: "string" },
-                        userId: { type: "string" },
+                        parent_task_id: { type: "string" },
+                        user_id: { type: "string" },
                     },
                 },
                 response: {
@@ -65,14 +96,14 @@ export default async function tasksRoute(
                             description: { type: ["string", "null"] },
                             is_done: { type: "boolean" },
                             deleted_at: { type: ["string", "null"] },
-                            userId: { type: "string" },
+                            user_id: { type: "string" },
                         },
                     },
                 },
             },
         },
         async (request, reply) => {
-            const { title, description, is_done, parentTaskId, userId } =
+            const { title, description, is_done, parent_task_id, user_id } =
                 request.body;
 
             const created = await prisma.task.create({
@@ -80,8 +111,8 @@ export default async function tasksRoute(
                     title,
                     description: description ?? null,
                     is_done: is_done ?? false,
-                    parentTaskId: parentTaskId ?? null,
-                    userId,
+                    parent_task_id: parent_task_id ?? null,
+                    user_id,
                 },
             });
 
@@ -90,14 +121,11 @@ export default async function tasksRoute(
     );
 
     // Get a single task by id
-    fastify.get<{ Params: { id: string } }>(
-        "/tasks/:id",
-        async (request, reply) => {
-            const id = request.params.id;
-            const task = await prisma.task.findUnique({ where: { id } });
-            if (!task || task.deleted_at)
-                return reply.code(404).send({ message: "Not found" });
-            return task;
-        }
-    );
+    fastify.get<{ Params: { id: string } }>("/:id", async (request, reply) => {
+        const id = request.params.id;
+        const task = await prisma.task.findUnique({ where: { id } });
+        if (!task || task.deleted_at)
+            return reply.code(404).send({ message: "Not found" });
+        return task;
+    });
 }
