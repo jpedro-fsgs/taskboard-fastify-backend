@@ -39,3 +39,11 @@ export const findUserByIdService = async (id: string) => {
     });
     return user;
 };
+
+export const findUserByUsernameService = async (username: string) => {
+    // Return the full user record (including hashed_password) for internal auth use
+    const user = await prisma.user.findUnique({
+        where: { username },
+    });
+    return user;
+};

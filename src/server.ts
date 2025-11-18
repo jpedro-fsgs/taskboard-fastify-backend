@@ -1,11 +1,17 @@
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
 import Fastify from "fastify";
-import { validatorCompiler, serializerCompiler, ZodTypeProvider, jsonSchemaTransform } from "fastify-type-provider-zod";
+import {
+    validatorCompiler,
+    serializerCompiler,
+    ZodTypeProvider,
+    jsonSchemaTransform,
+} from "fastify-type-provider-zod";
 
 import tasksRoute from "./modules/task/tasks.route";
 import usersRoute from "./modules/user/users.route";
-import { jwtConfig } from "./jwt.config";
+import authRoute from "./modules/auth/auth.route";
+import fastifyJwt from "@fastify/jwt";
 
 // Determine environment
 const isDev = process.env.NODE_ENV === "development";
@@ -30,7 +36,39 @@ const fastify = Fastify({
 fastify.log.info(`Environment: ${process.env.NODE_ENV}`);
 
 
-fastify.register(jwtConfig);
+const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret) {
+    fastify.log.error("JWT_SECRET is not set");
+    process.exit(1);
+}
+
+fastify.register(fastifyJwt, {
+    secret: jwtSecret,
+});
+
+
+declare module "@fastify/jwt" {
+    interface FastifyJWT {
+        user: { sub: string };
+    }
+}
+
+declare module "fastify" {
+    interface FastifyInstance {
+        authenticate: (
+            request: FastifyRequest,
+            reply: FastifyReply
+        ) => Promise<void>;
+    }
+}
+
+fastify.decorate("authenticate", async function (request, reply) {
+    try {
+        await request.jwtVerify();
+    } catch (err) {
+        reply.code(401).send({ message: "Unauthorized" });
+    }
+});
 
 // --- Set up Zod as validator and serializer ---
 fastify.setValidatorCompiler(validatorCompiler);
@@ -45,7 +83,7 @@ fastify.register(fastifySwagger, {
             version: "1.0.0",
         },
     },
-    transform: jsonSchemaTransform
+    transform: jsonSchemaTransform,
 });
 
 fastify.register(fastifySwaggerUi, {
@@ -54,9 +92,10 @@ fastify.register(fastifySwaggerUi, {
 
 fastify.register(tasksRoute, { prefix: "/api/tasks" });
 fastify.register(usersRoute, { prefix: "/api/users" });
+fastify.register(authRoute, { prefix: "/api/auth" });
 
 fastify
-    .listen({ port: 3333, host: '0.0.0.0' })
+    .listen({ port: 3333, host: "0.0.0.0" })
     .then(() => {
         fastify.log.info(`This was a triumph.`);
         fastify.log.info(`I'm making a note here: HUGE SUCCESS.`);
