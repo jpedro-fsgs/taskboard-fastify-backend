@@ -22,6 +22,5 @@ export function buildTree(tasks: Task[]): (Task & { sub_tasks: Task[] })[] {
             rootTasks.push(task);
         }
     });
-    console.log("Built task tree:", rootTasks);
     return rootTasks;
 }
