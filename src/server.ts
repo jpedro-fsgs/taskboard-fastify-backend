@@ -15,7 +15,7 @@ import jwtConfig from "./utils/jwt.config";
 import cookie, { FastifyCookieOptions } from "@fastify/cookie";
 
 // Determine environment
-export const isDev = process.env.NODE_ENV === "development";
+export const isDev = process.env.NODE_ENV === "dev";
 // Instantiate Fastify with proper logging configuration on development and production
 const fastify = Fastify({
     logger: isDev
@@ -79,14 +79,16 @@ fastify.register(tasksRoute, { prefix: "/api/tasks" });
 fastify.register(usersRoute, { prefix: "/api/users" });
 fastify.register(authRoute, { prefix: "/api/auth" });
 
-fastify
-    .listen({ port: 3333, host: "0.0.0.0" })
-    .then(() => {
-        fastify.log.info(`This was a triumph.`);
-        fastify.log.info(`I'm making a note here: HUGE SUCCESS.`);
-        fastify.log.info(`It's hard to overstate my satisfaction.`);
-    })
-    .catch((err) => {
-        fastify.log.error(err);
-        process.exit(1);
-    });
+if (process.env.NODE_ENV !== "test") {
+    fastify
+        .listen({ port: 3333, host: "0.0.0.0" })
+        .then(() => {
+            fastify.log.info(`This was a triumph.`);
+            fastify.log.info(`I'm making a note here: HUGE SUCCESS.`);
+            fastify.log.info(`It's hard to overstate my satisfaction.`);
+        })
+        .catch((err) => {
+            fastify.log.error(err);
+            process.exit(1);
+        });
+}

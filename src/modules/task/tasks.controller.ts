@@ -7,6 +7,8 @@ import {
 } from "./tasks.service";
 import { findUserByIdService } from "../user/users.service";
 import { CreateTaskInput } from "./tasks.schema";
+import { softDeleteTaskService } from "./tasks.service";
+import { success } from "zod";
 
 export const getTasksHandler = async (
     request: FastifyRequest,
@@ -89,6 +91,33 @@ export const setTaskDoneHandler = async (
     try {
         const updatedTask = await setTaskDoneService(id, userId, is_done);
         return reply.code(200).send(updatedTask);
+    } catch (err: any) {
+        request.log.error(err);
+        return reply.code(500).send({ message: "Internal error" });
+    }
+};
+
+export const softDeleteTaskHandler = async (
+    request: FastifyRequest<{ Params: { id: string } }>,
+    reply: FastifyReply
+) => {
+    const id = request.params.id;
+    const userId = request.user.sub;
+    if (!userId) {
+        return reply.code(401).send({ message: "Unauthorized" });
+    }
+
+    try {
+        const task = await findTaskByIdService(id);
+        if (!task || task.deleted_at) {
+            return reply.code(404).send({ message: "Not found" });
+        }
+        if (task.user_id !== userId) {
+            return reply.code(403).send({ message: "Forbidden" });
+        }
+
+        const deleted = await softDeleteTaskService(id);
+        return reply.code(200).send({ success: true });
     } catch (err: any) {
         request.log.error(err);
         return reply.code(500).send({ message: "Internal error" });

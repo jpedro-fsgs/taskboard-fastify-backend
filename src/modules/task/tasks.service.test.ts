@@ -136,5 +136,12 @@ describe('tasks.service', () => {
 
       expect(res).toEqual({ id: '1', deleted_at: expect.any(Date) });
     });
+
+    it('propagates errors from prisma update', async () => {
+      (prisma.task.update as any).mockRejectedValue(new Error('db error'));
+      (prisma.task.findMany as any).mockResolvedValue([]);
+
+      await expect(softDeleteTaskService('bad-id')).rejects.toThrow('db error');
+    });
   });
 });

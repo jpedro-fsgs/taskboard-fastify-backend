@@ -4,6 +4,7 @@ import {
     createTaskHandler,
     getTaskByIdHandler,
     setTaskDoneHandler,
+    softDeleteTaskHandler,
 } from "./tasks.controller";
 import {
     createTaskSchema,
@@ -79,5 +80,26 @@ export default async function tasksRoute(
             onRequest: [fastify.authenticate],
         },
         setTaskDoneHandler
+    );
+
+    fastify.delete<{ Params: { id: string } }>(
+        "/:id",
+        {
+            schema: {
+                tags: ["tasks"],
+                security: [{ CookieAuth: [] }],
+                description: "Soft delete a task (mark as deleted)",
+                params: z.object({
+                    id: z.string(),
+                }),
+                response: {
+                    200: z.object({
+                        success: z.boolean(),
+                    }),
+                },
+            },
+            onRequest: [fastify.authenticate],
+        },
+        softDeleteTaskHandler
     );
 }

@@ -6,6 +6,7 @@ vi.mock('./tasks.service', () => ({
   getAllTasksService: vi.fn(),
   findTaskByIdService: vi.fn(),
   setTaskDoneService: vi.fn(),
+  softDeleteTaskService: vi.fn(),
 }));
 
 vi.mock('../user/users.service', () => ({
@@ -17,6 +18,7 @@ import {
   getAllTasksService,
   findTaskByIdService,
   setTaskDoneService,
+  softDeleteTaskService,
 } from './tasks.service';
 import { findUserByIdService } from '../user/users.service';
 import {
@@ -24,6 +26,7 @@ import {
   createTaskHandler,
   getTaskByIdHandler,
   setTaskDoneHandler,
+  softDeleteTaskHandler,
 } from './tasks.controller';
 
 beforeEach(() => {
@@ -172,5 +175,84 @@ describe('tasks.controller', () => {
 
     expect(code).toHaveBeenCalledWith(500);
     expect(send).toHaveBeenCalledWith({ message: 'Internal error' });
+  });
+
+  describe('softDeleteTaskHandler', () => {
+    it('returns 401 when no user', async () => {
+      const send = vi.fn();
+      const code = vi.fn(() => ({ send }));
+      const reply: any = { code };
+
+      const request: any = { params: { id: 'x' }, user: {} };
+
+      await softDeleteTaskHandler(request, reply as any);
+
+      expect(code).toHaveBeenCalledWith(401);
+      expect(send).toHaveBeenCalledWith({ message: 'Unauthorized' });
+    });
+
+    it('returns 404 when task missing or deleted', async () => {
+      (findTaskByIdService as any).mockResolvedValue(null);
+
+      const send = vi.fn();
+      const code = vi.fn(() => ({ send }));
+      const reply: any = { code };
+
+      const request: any = { params: { id: 'x' }, user: { sub: 'u1' } };
+
+      await softDeleteTaskHandler(request, reply as any);
+
+      expect(findTaskByIdService).toHaveBeenCalledWith('x');
+      expect(code).toHaveBeenCalledWith(404);
+      expect(send).toHaveBeenCalledWith({ message: 'Not found' });
+    });
+
+    it('returns 403 when task belongs to another user', async () => {
+      (findTaskByIdService as any).mockResolvedValue({ id: 't1', user_id: 'other', deleted_at: null });
+
+      const send = vi.fn();
+      const code = vi.fn(() => ({ send }));
+      const reply: any = { code };
+
+      const request: any = { params: { id: 't1' }, user: { sub: 'u1' } };
+
+      await softDeleteTaskHandler(request, reply as any);
+
+      expect(code).toHaveBeenCalledWith(403);
+      expect(send).toHaveBeenCalledWith({ message: 'Forbidden' });
+    });
+
+    it('deletes task successfully and returns success true', async () => {
+      (findTaskByIdService as any).mockResolvedValue({ id: 't2', user_id: 'u1', deleted_at: null });
+      (softDeleteTaskService as any).mockResolvedValue({ id: 't2', deleted_at: new Date() });
+
+      const send = vi.fn();
+      const code = vi.fn(() => ({ send }));
+      const reply: any = { code };
+
+      const request: any = { params: { id: 't2' }, user: { sub: 'u1' }, log: { error: vi.fn() } };
+
+      await softDeleteTaskHandler(request, reply as any);
+
+      expect(softDeleteTaskService).toHaveBeenCalledWith('t2');
+      expect(code).toHaveBeenCalledWith(200);
+      expect(send).toHaveBeenCalledWith({ success: true });
+    });
+
+    it('returns 500 when softDeleteTaskService throws', async () => {
+      (findTaskByIdService as any).mockResolvedValue({ id: 't3', user_id: 'u1', deleted_at: null });
+      (softDeleteTaskService as any).mockRejectedValue(new Error('boom'));
+
+      const send = vi.fn();
+      const code = vi.fn(() => ({ send }));
+      const reply: any = { code, log: { error: vi.fn() } };
+
+      const request: any = { params: { id: 't3' }, user: { sub: 'u1' }, log: { error: vi.fn() } };
+
+      await softDeleteTaskHandler(request, reply as any);
+
+      expect(code).toHaveBeenCalledWith(500);
+      expect(send).toHaveBeenCalledWith({ message: 'Internal error' });
+    });
   });
 });
