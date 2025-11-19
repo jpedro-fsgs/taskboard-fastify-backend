@@ -1,17 +1,17 @@
 import { FastifyInstance, FastifyPluginOptions } from "fastify";
-import { loginHandler } from "./auth.controller";
-import { loginSchema, loginResponseSchema } from "./auth.schema";
+import { loginHandler, logoutHandler } from "./auth.controller";
+import { loginSchema, loginResponseSchema, LoginInput } from "./auth.schema";
 
 export default async function authRoute(
     fastify: FastifyInstance,
     _opts: FastifyPluginOptions
 ) {
-    fastify.post<{ Body: import("./auth.schema").LoginInput }>(
+    fastify.post<{ Body: LoginInput }>(
         "/login",
         {
             schema: {
                 tags: ["auth"],
-                description: "Authenticate a user and return a JWT",
+                description: "Authenticate a user and set access token cookie",
                 body: loginSchema,
                 response: {
                     200: loginResponseSchema,
@@ -19,5 +19,16 @@ export default async function authRoute(
             },
         },
         loginHandler
+    );
+
+    fastify.post(
+        "/logout",
+        {
+            schema: {
+                tags: ["auth"],
+                description: "Logout a user by clearing the access token cookie",
+            },
+        },
+        logoutHandler
     );
 }

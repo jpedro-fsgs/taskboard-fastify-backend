@@ -11,9 +11,9 @@ export const getTasksHandler = async (
     request: FastifyRequest,
     reply: FastifyReply
 ) => {
-    const userId = (request.query as any)?.userId;
+    const userId = request.user.sub;
     const tasks = await getAllTasksService(userId);
-    return reply.code(200).send({ items: tasks }); // send() must match tasksArrayResponse
+    return reply.code(200).send({ items: tasks });
 };
 
 export const createTaskHandler = async (

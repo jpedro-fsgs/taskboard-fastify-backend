@@ -27,19 +27,20 @@ export default async function jwtConfig(fastify: FastifyInstance) {
 
     await fastify.register(fastifyJwt, {
         secret: jwtSecret,
+        cookie: {
+            cookieName: "access_token",
+            signed: false,
+        },
     });
 
     fastify.decorate("authenticate", async function (request, reply) {
-        const auth = request.headers.authorization;
-
-        if (!auth || !auth.startsWith("Bearer ")) {
-            return reply.code(401).send({ message: "Unauthorized" });
-        }
-
-        try {
-            await request.jwtVerify();
-        } catch (err) {
-            return reply.code(401).send({ message: "Unauthorized" });
-        }
+        await request.jwtVerify({ onlyCookie: true }).catch((err) => {
+            console.table(err);
+            if (err.statusCode == 401) {
+                return reply.code(401).send({ message: "Unauthorized" });
+            }
+            fastify.log.error(err);
+            throw err;
+        });
     });
 }

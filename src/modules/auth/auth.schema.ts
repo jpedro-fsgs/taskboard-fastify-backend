@@ -5,13 +5,18 @@ export const loginSchema = z.object({
     password: z.string().min(1, "Password is required"),
 });
 
+// export const loginResponseSchema = z.object({
+//     token: z.string(),
+//     user: z.object({
+//         id: z.string(),
+//         username: z.string(),
+//         name: z.string().optional(),
+//     }),
+// });
 export const loginResponseSchema = z.object({
-    token: z.string(),
-    user: z.object({
-        id: z.string(),
-        username: z.string(),
-        name: z.string().optional(),
-    }),
+    message: z.literal("Authenticated")
 });
+
+
 
 export type LoginInput = z.infer<typeof loginSchema>;

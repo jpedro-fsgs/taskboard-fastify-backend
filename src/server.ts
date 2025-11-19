@@ -12,6 +12,7 @@ import tasksRoute from "./modules/task/tasks.route";
 import usersRoute from "./modules/user/users.route";
 import authRoute from "./modules/auth/auth.route";
 import jwtConfig from "./utils/jwt.config";
+import cookie, { FastifyCookieOptions } from "@fastify/cookie";
 
 // Determine environment
 export const isDev = process.env.NODE_ENV === "development";
@@ -39,6 +40,11 @@ fastify.log.info(`Environment: ${process.env.NODE_ENV}`);
 // Call the initializer directly so the `authenticate` decorator is attached to
 // the root Fastify instance and available to sibling plugins/routes.
 await jwtConfig(fastify);
+
+fastify.register(cookie, {
+//   secret: "my-secret",
+//   parseOptions: {}
+} as FastifyCookieOptions)
 
 // --- Set up Zod as validator and serializer ---
 fastify.setValidatorCompiler(validatorCompiler);
