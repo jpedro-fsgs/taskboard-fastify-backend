@@ -7,8 +7,7 @@ export const getAllTasksService = async (userId?: string) => {
     if (userId) where.user_id = userId;
 
     const tasks = await prisma.task.findMany({ where });
-    const tasksTree = buildTree(tasks as any);
-    return tasksTree;
+    return tasks;
 };
 
 export const createTaskService = async (input: CreateTaskInput, userId: string) => {

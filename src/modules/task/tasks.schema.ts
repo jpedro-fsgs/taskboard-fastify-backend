@@ -17,7 +17,7 @@ export const createTaskResponseSchema = z.object({
     parent_task_id: z.string().nullable(),
 });
 
-const baseTask = z.object({
+const task = z.object({
     id: z.string(),
     title: z.string(),
     description: z.string().nullable(),
@@ -27,15 +27,8 @@ const baseTask = z.object({
     parent_task_id: z.string().nullable(),
 });
 
-const taskWithSubTasksSchema: z.ZodType<any> = z.lazy(
-    () =>
-        baseTask.extend({
-            sub_tasks: z.array(taskWithSubTasksSchema),
-        })
-);
-
 export const tasksArrayResponseSchema = z.object({
-    items: z.array(taskWithSubTasksSchema),
+    items: z.array(task),
 });
 
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
