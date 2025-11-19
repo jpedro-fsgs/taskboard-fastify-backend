@@ -18,7 +18,7 @@ export default async function usersRoute(
         {
             schema: {
                 tags: ["users"],
-                security: [{ BearerAuth: [] }],
+                security: [{ CookieAuth: [] }],
                 description: "Retrieve a list of all users",
                 response: {
                     200: usersArrayResponseSchema,

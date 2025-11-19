@@ -3,6 +3,7 @@ import {
     createTaskService,
     getAllTasksService,
     findTaskByIdService,
+    setTaskDoneService,
 } from "./tasks.service";
 import { findUserByIdService } from "../user/users.service";
 import { CreateTaskInput } from "./tasks.schema";
@@ -46,9 +47,10 @@ export const createTaskHandler = async (
             if (parentTask && parentTask.user_id !== userId) {
                 return reply
                     .code(403)
-                    .send({ message: "Parent task belongs to a different user" });
+                    .send({
+                        message: "Parent task belongs to a different user",
+                    });
             }
-
         }
 
         const created = await createTaskService(body, userId);
@@ -75,4 +77,20 @@ export const getTaskByIdHandler = async (
     if (!task || task.deleted_at)
         return reply.code(404).send({ message: "Not found" });
     return reply.code(200).send(task);
+};
+
+export const setTaskDoneHandler = async (
+    request: FastifyRequest<{ Body: { id: string; is_done: boolean } }>,
+    reply: FastifyReply
+) => {
+    const { id, is_done } = request.body;
+    const userId = request.user.sub;
+
+    try {
+        const updatedTask = await setTaskDoneService(id, userId, is_done);
+        return reply.code(200).send(updatedTask);
+    } catch (err: any) {
+        request.log.error(err);
+        return reply.code(500).send({ message: "Internal error" });
+    }
 };

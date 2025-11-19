@@ -42,9 +42,9 @@ fastify.log.info(`Environment: ${process.env.NODE_ENV}`);
 await jwtConfig(fastify);
 
 fastify.register(cookie, {
-//   secret: "my-secret",
-//   parseOptions: {}
-} as FastifyCookieOptions)
+    //   secret: "my-secret",
+    //   parseOptions: {}
+} as FastifyCookieOptions);
 
 // --- Set up Zod as validator and serializer ---
 fastify.setValidatorCompiler(validatorCompiler);
@@ -60,10 +60,10 @@ fastify.register(fastifySwagger, {
         },
         components: {
             securitySchemes: {
-                BearerAuth: {
-                    type: "http",
-                    scheme: "bearer",
-                    bearerFormat: "JWT",
+                CookieAuth: {
+                    type: "apiKey",
+                    in: "cookie",
+                    name: "access_token", // nome do cookie
                 },
             },
         },

@@ -35,7 +35,6 @@ export default async function jwtConfig(fastify: FastifyInstance) {
 
     fastify.decorate("authenticate", async function (request, reply) {
         await request.jwtVerify({ onlyCookie: true }).catch((err) => {
-            console.table(err);
             if (err.statusCode == 401) {
                 return reply.code(401).send({ message: "Unauthorized" });
             }

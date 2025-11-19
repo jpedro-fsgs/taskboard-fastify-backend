@@ -3,6 +3,7 @@ import {
     getTasksHandler,
     createTaskHandler,
     getTaskByIdHandler,
+    setTaskDoneHandler,
 } from "./tasks.controller";
 import {
     createTaskSchema,
@@ -21,8 +22,8 @@ export default async function tasksRoute(
         {
             schema: {
                 tags: ["tasks"],
-                security: [{ BearerAuth: [] }],
-                description: "Retrieve a list of tasks (tree structure)",
+                security: [{ CookieAuth: [] }],
+                description: "Retrieve a list of tasks",
                 response: {
                     200: tasksArrayResponseSchema,
                 },
@@ -41,7 +42,7 @@ export default async function tasksRoute(
         {
             schema: {
                 tags: ["tasks"],
-                security: [{ BearerAuth: [] }],
+                security: [{ CookieAuth: [] }],
                 description: "Create a new task",
                 body: createTaskSchema,
                 response: {
@@ -49,6 +50,7 @@ export default async function tasksRoute(
                 },
             },
             onRequest: [fastify.authenticate],
+            
         },
         createTaskHandler
     );
@@ -58,5 +60,24 @@ export default async function tasksRoute(
         "/:id",
         { schema: { tags: ["tasks"] } },
         getTaskByIdHandler
+    );
+
+    fastify.patch<{
+        Body: { id: string; is_done: boolean };
+    }>(
+        "/set-done",
+        {
+            schema: {
+                tags: ["tasks"],
+                security: [{ CookieAuth: [] }],
+                description: "Set task as done or not done",
+                body: z.object({
+                    id: z.string(),
+                    is_done: z.boolean(),
+                }),
+            },
+            onRequest: [fastify.authenticate],
+        },
+        setTaskDoneHandler
     );
 }
