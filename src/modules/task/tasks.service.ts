@@ -11,8 +11,8 @@ export const getAllTasksService = async (userId?: string) => {
     return tasksTree;
 };
 
-export const createTaskService = async (input: CreateTaskInput) => {
-    const { title, description, is_done, parent_task_id, user_id } = input;
+export const createTaskService = async (input: CreateTaskInput, userId: string) => {
+    const { title, description, is_done, parent_task_id } = input;
 
     const created = await prisma.task.create({
         data: {
@@ -20,7 +20,7 @@ export const createTaskService = async (input: CreateTaskInput) => {
             description: description ?? null,
             is_done: is_done ?? false,
             parent_task_id: parent_task_id ?? null,
-            user_id,
+            user_id: userId,
         },
     });
 

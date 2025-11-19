@@ -21,12 +21,15 @@ export default async function tasksRoute(
         {
             schema: {
                 tags: ["tasks"],
+                security: [{ BearerAuth: [] }],
                 description: "Retrieve a list of tasks (tree structure)",
                 response: {
                     200: tasksArrayResponseSchema,
                 },
             },
+            onRequest: [fastify.authenticate],
         },
+        
         getTasksHandler
     );
 
@@ -38,12 +41,14 @@ export default async function tasksRoute(
         {
             schema: {
                 tags: ["tasks"],
+                security: [{ BearerAuth: [] }],
                 description: "Create a new task",
                 body: createTaskSchema,
                 response: {
                     201: createTaskResponseSchema,
                 },
             },
+            onRequest: [fastify.authenticate],
         },
         createTaskHandler
     );

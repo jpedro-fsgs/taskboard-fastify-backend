@@ -11,10 +11,10 @@ import {
 import tasksRoute from "./modules/task/tasks.route";
 import usersRoute from "./modules/user/users.route";
 import authRoute from "./modules/auth/auth.route";
-import fastifyJwt from "@fastify/jwt";
+import jwtConfig from "./utils/jwt.config";
 
 // Determine environment
-const isDev = process.env.NODE_ENV === "development";
+export const isDev = process.env.NODE_ENV === "development";
 // Instantiate Fastify with proper logging configuration on development and production
 const fastify = Fastify({
     logger: isDev
@@ -35,40 +35,10 @@ const fastify = Fastify({
 
 fastify.log.info(`Environment: ${process.env.NODE_ENV}`);
 
-
-const jwtSecret = process.env.JWT_SECRET;
-if (!jwtSecret) {
-    fastify.log.error("JWT_SECRET is not set");
-    process.exit(1);
-}
-
-fastify.register(fastifyJwt, {
-    secret: jwtSecret,
-});
-
-
-declare module "@fastify/jwt" {
-    interface FastifyJWT {
-        user: { sub: string };
-    }
-}
-
-declare module "fastify" {
-    interface FastifyInstance {
-        authenticate: (
-            request: FastifyRequest,
-            reply: FastifyReply
-        ) => Promise<void>;
-    }
-}
-
-fastify.decorate("authenticate", async function (request, reply) {
-    try {
-        await request.jwtVerify();
-    } catch (err) {
-        reply.code(401).send({ message: "Unauthorized" });
-    }
-});
+// Register JWT configuration and authentication decorator from separate module
+// Call the initializer directly so the `authenticate` decorator is attached to
+// the root Fastify instance and available to sibling plugins/routes.
+await jwtConfig(fastify);
 
 // --- Set up Zod as validator and serializer ---
 fastify.setValidatorCompiler(validatorCompiler);
@@ -81,6 +51,15 @@ fastify.register(fastifySwagger, {
             title: "Taskboard API",
             description: "Documentação da API do Taskboard",
             version: "1.0.0",
+        },
+        components: {
+            securitySchemes: {
+                BearerAuth: {
+                    type: "http",
+                    scheme: "bearer",
+                    bearerFormat: "JWT",
+                },
+            },
         },
     },
     transform: jsonSchemaTransform,

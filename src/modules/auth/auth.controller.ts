@@ -1,10 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { validateUserService } from "./auth.service";
 import { LoginInput } from "./auth.schema";
-// Don't import the server instance here — importing the server causes a
-// circular dependency (server -> routes -> controller -> server) which
-// can make the JWT plugin unavailable at module load time. Instead use
-// the `reply` helper methods which are available at request time.
 
 export const loginHandler = async (
     request: FastifyRequest<{ Body: LoginInput }>,
@@ -20,9 +16,15 @@ export const loginHandler = async (
 
         // Create JWT token with the user's id as subject. Use reply.jwtSign
         // Return token as a string to match the response schema.
-        reply.log.info("Trying to sign token");
-        const token = await reply.jwtSign({ sub: user.id });
-        reply.log.info(token);
+        const payload = {
+            sub: String(user.id),
+            username: user.username,
+        };
+
+        const jti = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+        const expiresIn = process.env.JWT_EXPIRES_IN || "1h";
+
+        const token = await reply.jwtSign(payload, { expiresIn, jti});
 
         return reply.code(200).send({ token, user });
     } catch (err: any) {

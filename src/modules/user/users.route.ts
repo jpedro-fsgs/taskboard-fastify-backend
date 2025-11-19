@@ -18,12 +18,15 @@ export default async function usersRoute(
         {
             schema: {
                 tags: ["users"],
+                security: [{ BearerAuth: [] }],
                 description: "Retrieve a list of all users",
                 response: {
                     200: usersArrayResponseSchema,
                 },
             },
+            onRequest: [fastify.authenticate],
         },
+
         getUsersHandler
     );
 

@@ -5,7 +5,6 @@ export const createTaskSchema = z.object({
     description: z.string().optional(),
     is_done: z.boolean().optional(),
     parent_task_id: z.string().optional(),
-    user_id: z.string().min(1, "user_id is required"),
 });
 
 export const createTaskResponseSchema = z.object({
