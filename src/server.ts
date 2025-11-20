@@ -13,6 +13,7 @@ import usersRoute from "./modules/user/users.route";
 import authRoute from "./modules/auth/auth.route";
 import jwtConfig from "./utils/jwt.config";
 import cookie, { FastifyCookieOptions } from "@fastify/cookie";
+import cors from "@fastify/cors";
 
 // Determine environment
 export const isDev = process.env.NODE_ENV === "dev";
@@ -73,6 +74,12 @@ fastify.register(fastifySwagger, {
 
 fastify.register(fastifySwaggerUi, {
     routePrefix: "/docs",
+});
+
+fastify.register(cors, {
+    origin: process.env.ALLOWED_ORIGIN || 'http://localhost:3001',
+    methods: ["GET", "POST", "PATCH", "DELETE", "PUT"],
+    credentials: true,
 });
 
 fastify.register(tasksRoute, { prefix: "/api/tasks" });
