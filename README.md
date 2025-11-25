@@ -11,6 +11,10 @@ Descrição do repositório do backend de uma aplicação de quadro de tarefas (
 - **Framework HTTP:** Fastify
 - **ORM:** Prisma (migrations presentes em `prisma/migrations`)
 - **Autenticação:** JWT (configuração em `src/utils/jwt.config.ts`)
+ 
+**Swagger UI**
+
+![Swagger UI](screenshots/Screenshot%20Swagger%20UI.png)
 
 **Estrutura do projeto (visão resumida)**
 - `src/server.ts`: ponto de entrada da aplicação.
@@ -31,6 +35,22 @@ Descrição do repositório do backend de uma aplicação de quadro de tarefas (
 - Organização modular que facilita manutenção e testes unitários.
 - Separação clara entre camada de rota, controlador e serviço.
 - Uso de migrations do Prisma para versionamento do esquema de banco.
+
+**Como rodar (desenvolvimento)**
+
+- Instale dependências: `npm install`
+- Defina as variáveis de ambiente necessárias (por exemplo `DATABASE_URL` e `JWT_SECRET`). Você pode criar um arquivo `.env` na raiz com as variáveis apropriadas.
+- (Opcional) Rode as migrations do Prisma se necessário: `npx prisma migrate dev --name init`.
+- Inicie em modo desenvolvimento: `npm run dev` (o script usa `tsx watch src/server.ts`).
+
+Exemplo de comandos (bash):
+```
+npm install
+# export DATABASE_URL='sua_database_url_aqui'
+# export JWT_SECRET='sua_chave_secreta_aqui'
+npx prisma migrate dev --name init
+npm run dev
+```
 
 Arquivos de referência rápida:
 - `src/server.ts`
