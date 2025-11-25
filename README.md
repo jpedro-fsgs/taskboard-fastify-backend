@@ -52,6 +52,19 @@ npx prisma migrate dev --name init
 npm run dev
 ```
 
+**Schema do Banco de Dados**
+
+- O projeto utiliza Prisma; o schema principal está em `prisma/schema.prisma`.
+- Principais models:
+  - **User**: `id` (UUID), `username` (único), `name` (opcional), `hashed_password`, relaciona-se com `Task` (1:N).
+  - **Task**: `id` (UUID), `title`, `description` (opcional), `is_done` (boolean), `deleted_at` (soft-delete), `user_id` (FK para `User`). Suporta subtarefas via self-relation (`parent_task_id` / `sub_tasks`).
+
+- Mais detalhes do schema podem ser vistos em `prisma/schema.prisma`.
+
+Diagrama do banco:
+
+![Taskboard Database](screenshots/taskboard%20database.png)
+
 Arquivos de referência rápida:
 - `src/server.ts`
 - `src/modules/auth/auth.controller.ts`
